@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="icon" href="data:,">
+<style>
+table.GeneratedTable {
+  width: 80%;
+  background-color: #ffffff;
+  border-collapse: collapse;
+  border-width: 2px;
+  border-color: #2383e2;
+  border-style: solid;
+  color: #000000;
+  text-align: center;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size:30px;
+}
+
+table.GeneratedTable td, table.GeneratedTable th {
+  border-width: 2px;
+  border-color: #2383e2;
+  border-style: solid;
+  padding: 3px;
+}
+
+table.GeneratedTable thead {
+  background-color: #1c74df;
+}
+
+.button{display: inline-block; background-color: #e7bd3b; border: none; border-radius: 4px; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer; width:150px; height:150px;}
+</style>
+
+<title>Toshiba AC</title>
+</head>
+
+<body>
+<h1 style="font-family:verdana;font-size:48px;">Toshiba AC</h1>
+<table class="GeneratedTable">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AC unit connection</td>
+      <td id='TAC_connected'>-</td>
+    </tr>
+    <tr>
+      <td>Wifi RSSI</td>
+      <td id='rssi'>-</td>
+    </tr>
+    <tr>
+      <td>State</td>
+      <td id='state'>-</td>
+    </tr>
+    <tr>
+      <td>Fan mode</td>
+      <td id='fanmode'>-</td>
+    </tr>
+    <tr>
+      <td>Swing</td>
+      <td id='swing'>-</td>
+    </tr>
+    <tr>
+      <td>Mode</td>
+      <td id='mode'>-</td>
+    </tr>
+    <tr>
+      <td>Setpoint</td>
+      <td id='setpoint'>-</td>
+    </tr>
+    <tr>
+      <td>Room temperature</td>
+      <td id='roomtemp'>-</td>
+    </tr>
+    <tr>
+      <td>Outdoor temperature</td>
+      <td id='outdoortemp'>-</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+ <button class="button" onclick="myFunction(`CMD_STATE`, `STATE_ON`)">ON</button>
+ <button class="button" onclick="myFunction(`CMD_STATE`, `STATE_OFF`)">OFF</button>
+</p>
+  
+<script>
+var noresponsecounter = 0;
+
+requestData(); //get initial data
+  
+setInterval(requestData, 4000); //request data update interval
+
+function myFunction(a,b) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'command');
+    xhr.timeout = 3000;
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.onload = function() { //if response code is 200, success
+        console.log('myfync response: ' + xhr.status + xhr.responseText);
+    }
+    console.log('{"'+ a + '":"' + b +'"}');
+    xhr.send('{"'+ a + '":"' + b +'"}');
+}
+
+function requestData() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'status');
+    xhr.timeout = 3000;
+
+    console.log('PING');
+
+    xhr.onload = function() {
+        console.log('ONLOAD');
+        if((xhr.status === 200) && (xhr.responseText)){ //return ok and there is data
+            var data = JSON.parse(xhr.responseText);
+            console.log('OK. ' + xhr.status + JSON.stringify(data));
+            
+            for(var key in data) {
+                console.log(key + data[key])
+                var element = document.getElementById(key);
+                if(element != null) {
+                    element.innerText = data[key];
+                }
+            }
+            
+            noresponsecounter = 0;
+        } else { // a problem occurred
+            console.log('Request failed. ' + xhr.status);
+            if(noresponsecounter < 5) {
+                noresponsecounter = noresponsecounter + 1;
+            }
+        }
+    };
+    
+    xhr.ontimeout = function (e) {
+        console.log('TIMEOUT');
+        if(noresponsecounter < 5) {
+            noresponsecounter = noresponsecounter + 1;
+        }
+    };
+
+    if(noresponsecounter >= 5) {
+        document.getElementById("TAC_connected").innerText = "Not connected!";
+    }
+    else {
+        document.getElementById("TAC_connected").innerText = "Connected";
+    }
+
+    xhr.send();
+}
+</script>
+
+</body>
+</html>
