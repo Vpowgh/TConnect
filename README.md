@@ -7,7 +7,7 @@ Toshiba air conditioner interface with ESP32. Uses UART to communicate with AC u
 
 # Installation
 - Install MicroPython to ESP32 (tested with version 1.16, anything newer should work)
-- Copy .py and .html files to ESP32
+- Copy .py and .html files to ESP32, modify config.py with correct wifi username and password. NOTE: Wifi username and password are saved in plain text to ESP32!
 
 # JSON API
 ## Status
