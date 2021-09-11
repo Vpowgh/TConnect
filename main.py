@@ -247,10 +247,11 @@ async def mainloop():
     while True:
         logging.info("4s")
         
-        if(rssi == 0):
-            rssi = sta_if.status('rssi')
-        else:
-            rssi = int(rssi + (sta_if.status('rssi')-rssi)/4) #filtered rssi value
+        if sta_if.isconnected(): #rssi can be read only if wifi connected
+            if(rssi == 0):
+                rssi = sta_if.status('rssi')
+            else:
+                rssi = int(rssi + (sta_if.status('rssi')-rssi)/4) #filtered rssi value
         
         if(comm_state == COMM_NORMAL):
             if not comm_error():
