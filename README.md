@@ -54,7 +54,7 @@ Example of sending a command using curl:
 
 
 # Web interface
-Opening address http://yourIP/ with a browser shows simple user interface with current status and buttons for basic commands.
+Opening address http://yourIP/ with a browser shows simple user interface with current status and buttons for commands.
 
 # Links
 https://www.espressif.com/en/products/devkits/esp32-devkitc/
@@ -63,3 +63,4 @@ https://micropython.org/
 
 https://github.com/toremick/shorai-esp32
 
+https://github.com/belyalov/tinyweb
