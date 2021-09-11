@@ -10,6 +10,9 @@ import gc
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+
+import uasyncio as asyncio
+
 #--------------------------------------------------------------
 #Web server
 
@@ -46,8 +49,6 @@ async def index(request, response):
     ',  "roomtemp":' + str(convert_temperature(values[VAL_ROOMTEMP])) +
     ',  "outdoortemp":"' + str(convert_temperature(values[VAL_OUTDOORTEMP])) +
     '"}\n')
-    
-
 
 async def all_shutdown():
     await asyncio.sleep_ms(100)
@@ -62,8 +63,8 @@ def getrssi():
 
 #--------------------------------------------------------------
 #UART serial communication
-COMM_INIT = 1
-COMM_NORMAL = 2
+COMM_INIT = const(1)
+COMM_NORMAL = const(2)
 
 commands = {'CMD_STATE':128, 'CMD_MODE':176, 'CMD_FAN':160, 'CMD_SWING':163, 'CMD_SETPOINT':179,
             'MODE_AUTO':65, 'MODE_COOL':66, 'MODE_HEAT':67, 'MODE_DRY':68, 'MODE_FAN':69,
@@ -76,13 +77,13 @@ UIstate =   {0:'-', 48:'ON', 49:'OFF'}
 
 
 values = {128:0, 160:0, 163:0, 176:0, 179:0, 187:0, 190:0}
-VAL_STATE = 128
-VAL_FANMODE = 160
-VAL_SWING = 163
-VAL_MODE = 176
-VAL_SETPOINT = 179
-VAL_ROOMTEMP = 187
-VAL_OUTDOORTEMP = 190
+VAL_STATE = const(128)
+VAL_FANMODE = const(160)
+VAL_SWING = const(163)
+VAL_MODE = const(176)
+VAL_SETPOINT = const(179)
+VAL_ROOMTEMP = const(187)
+VAL_OUTDOORTEMP = const(190)
 
 comm_state = COMM_INIT
 comm_errorcounter = 0
@@ -90,40 +91,25 @@ comm_errorcounter = 0
 rxdata = b'' #buffer for incoming bytes
 rxwait = False
 
+txmsg = [] # buffer for outgoing messages
+
 
 def checksum(s):
     return (0x100-(sum(s)%0x100))%0x100
 
 def init_comms():
-    global comm_errorcounter
+    global txmsg
         
     logging.info("Comm init")
     
-    comm_errorcounter = 0
-    
-    msglist = []
-    msglist.append((2,255,255,0,0,0,0,2))
-    msglist.append((2,255,255,1,0,0,1,2,254))
-    msglist.append((2,0,0,0,0,0,2,2,2,250))
-    msglist.append((2,0,1,129,1,0,2,0,0,123))
-    msglist.append((2,0,1,2,0,0,2,0,0,254))
-    msglist.append((2,0,2,0,0,0,0,254))
-    
-    for i in msglist:
-        logging.debug("%s",bytearray(i))
-        uart.write(bytearray(i))
-        time.sleep(0.1)
-     
-    time.sleep(2)
-    msglist.clear()
-    msglist.append((2,0,2,1,0,0,2,0,0,251))
-    msglist.append((2,0,2,2,0,0,2,0,0,250))
-
-    for i in msglist:
-        logging.debug("%s",bytearray(i))
-        uart.write(bytearray(i))
-        time.sleep(0.1)
-
+    txmsg.append(((2,255,255,0,0,0,0,2),100))
+    txmsg.append(((2,255,255,1,0,0,1,2,254),100))
+    txmsg.append(((2,0,0,0,0,0,2,2,2,250),100))
+    txmsg.append(((2,0,1,129,1,0,2,0,0,123),100))
+    txmsg.append(((2,0,1,2,0,0,2,0,0,254),100))
+    txmsg.append(((2,0,2,0,0,0,0,254),2000))
+    txmsg.append(((2,0,2,1,0,0,2,0,0,251),100))
+    txmsg.append(((2,0,2,2,0,0,2,0,0,250),100))
 
 def convert_temperature(t):
     if(t>127):
@@ -135,15 +121,14 @@ def convert_temperature(t):
 
 
 def getvalue(v):
+    global txmsg
     msg = [2,0,3,16,0,0,6,1,48,1,0,1]
     msg.append(v)
     msg.append(checksum(msg[1:]))    
-    logging.debug("%s",bytearray(msg))
-    uart.write(bytearray(msg))
-    time.sleep(0.1) #have to give some time to AC
-
+    txmsg.append((msg,100))
 
 def sendcommand(c,v):
+    global txmsg
     msg = [2,0,3,16,0,0,7,1,48,1,0,2]
     logging.debug("CMD: %s %s",str(c),str(v))
 
@@ -156,11 +141,8 @@ def sendcommand(c,v):
     else:
         return #command not valid, do not send anything
     
-    msg.append(checksum(msg[1:]))    
-    logging.debug("%s",bytearray(msg))
-    uart.write(bytearray(msg))
-    time.sleep(0.05) #have to give some time to AC
-
+    msg.append(checksum(msg[1:]))
+    txmsg.insert(0,(msg,100))
 
 def parsemessage(m):
     if(m[2] == 0x03 and len(m) == 17): #read response
@@ -171,117 +153,134 @@ def parsemessage(m):
             logging.debug("%s",str(values))
 
 def comm_error():
-    global comm_errorcounter
     return (comm_errorcounter>=5)
 
-def UART_receiver():
+async def UART_transmitter():
+    global txmsg
+    global rxwait
+    
+    delay = 50
+    
+    while True:
+        while(len(txmsg) > 0):
+            x = txmsg.pop(0)
+            logging.debug("S: %s",bytearray(x[0]))
+            uart.write(bytearray(x[0]))
+            delay=x[1]
+            if(delay < 50):
+               delay = 50
+            elif(delay > 5000):
+               delay = 5000
+            await asyncio.sleep_ms(delay)
+            rxwait = True
+            
+        await asyncio.sleep_ms(50)
+
+async def UART_receiver():
     global rxdata
     global rxwait
     global comm_errorcounter
     
-    if(uart.any() > 0): #new data received
-        rxdata = rxdata + uart.read()
-    elif(rxwait): #nothing received but waited
-        rxwait = False
-        logging.info("TIMEOUT")
-        newstart = rxdata.find(b'\x02',1) #it is possible that msglen was garbage and there is still valid message in the buffer, find it
-        if(newstart >= 0):
-            rxdata = rxdata[newstart:]
-            logging.debug("TO: %s %s",str(newstart),str(rxdata))
-        else:
-            rxdata = b''
-            logging.info("FLUSH3")
-            return
-    else: #nothing received
-        if(comm_errorcounter < 5):
-            comm_errorcounter = comm_errorcounter + 1
-        return
-    
-    bufferlen = len(rxdata)
-    
-    while(bufferlen > 7):
-        logging.debug("bufferlen: %s",str(bufferlen))
-        if(rxdata[0] == 0x02): #check correct start byte
-            msglen = rxdata[6]
-            logging.debug("msglen: %s",str(msglen))
-            if(bufferlen > 7+msglen): #check if whole message in buffer
-    
-                if(checksum(rxdata[1:7+msglen]) == rxdata[7+msglen]):
-                    logging.info("MSGOK")
-                    logging.debug("%s",str(rxdata[:(8+msglen)]))
-                    parsemessage(rxdata[:(8+msglen)])
-                    rxdata = rxdata[(8+msglen):] #remove message from buffer
-                else: #wrong checksum
-                    logging.info("CSERR")
-                    newstart = rxdata.find(b'\x02',1)
-                    if(newstart >= 0):
-                        rxdata = rxdata[newstart:]
-                    else:
-                        rxdata = b''
-                        logging.info("FLUSH1")
-                        
-            else: #wait more bytes
-                logging.info("WAIT")
-                rxwait = True
-                break
-        else:
-            newstart = rxdata.find(b'\x02',1)
+    while True:
+        if(uart.any() > 0): #new data received
+            rxdata = rxdata + uart.read()
+        elif(rxwait): #nothing received but waited
+            rxwait = False
+            logging.info("TIMEOUT")
+            newstart = rxdata.find(b'\x02',1) #it is possible that msglen was garbage and there is still valid message in the buffer, find it
             if(newstart >= 0):
                 rxdata = rxdata[newstart:]
+                logging.debug("TO: %s %s",str(newstart),str(rxdata))
             else:
                 rxdata = b''
-                logging.info("FLUSH2")
-
+                logging.info("FLUSH3")
+                if(comm_errorcounter < 5):
+                    comm_errorcounter = comm_errorcounter + 1
+                    logging.info("CER")
+        
         bufferlen = len(rxdata)
+        
+        while(bufferlen > 7):
+            logging.debug("bufferlen: %s",str(bufferlen))
+            if(rxdata[0] == 0x02): #check correct start byte
+                msglen = rxdata[6]
+                logging.debug("msglen: %s",str(msglen))
+                if(bufferlen > 7+msglen): #check if whole message in buffer
+        
+                    if(checksum(rxdata[1:7+msglen]) == rxdata[7+msglen]):
+                        logging.info("MSGOK")
+                        logging.debug("%s",str(rxdata[:(8+msglen)]))
+                        parsemessage(rxdata[:(8+msglen)])
+                        rxdata = rxdata[(8+msglen):] #remove message from buffer
+                        comm_errorcounter = 0
+                    else: #wrong checksum
+                        logging.info("CSERR")
+                        newstart = rxdata.find(b'\x02',1)
+                        if(newstart >= 0):
+                            rxdata = rxdata[newstart:]
+                        else:
+                            rxdata = b''
+                            logging.info("FLUSH1")
+                            
+                else: #wait more bytes
+                    logging.info("WAIT")
+                    rxwait = True
+                    break
+            else:
+                newstart = rxdata.find(b'\x02',1)
+                if(newstart >= 0):
+                    rxdata = rxdata[newstart:]
+                else:
+                    rxdata = b''
+                    logging.info("FLUSH2")
+
+            bufferlen = len(rxdata)
+            
+        await asyncio.sleep_ms(1000)
 
 #--------------------------------------------------------------
 
-def loop_4s(timer):
+async def mainloop():
     global comm_state
     global rssi
     
-    logging.info("4s")
-    
-    if(rssi == 0):
-        rssi = sta_if.status('rssi')
-    else:
-        rssi = int(rssi + (sta_if.status('rssi')-rssi)/4) #filtered rssi value
-    
-    UART_receiver()
-    
-    if(comm_state == COMM_NORMAL):
-        if not comm_error():
-            getvalue(VAL_STATE)
-            getvalue(VAL_FANMODE)
-            getvalue(VAL_SWING)
-            getvalue(VAL_MODE)
-            getvalue(VAL_SETPOINT)
-            getvalue(VAL_ROOMTEMP)
-            getvalue(VAL_OUTDOORTEMP)
+    while True:
+        logging.info("4s")
+        
+        if(rssi == 0):
+            rssi = sta_if.status('rssi')
         else:
+            rssi = int(rssi + (sta_if.status('rssi')-rssi)/4) #filtered rssi value
+        
+        if(comm_state == COMM_NORMAL):
+            if not comm_error():
+                for k in values:
+                    getvalue(k)
+            else:
+                comm_state = COMM_INIT
+        elif(comm_state == COMM_INIT):
+            init_comms()
+            comm_state = COMM_NORMAL
+        else: #should not end up here
             comm_state = COMM_INIT
-    elif(comm_state == COMM_INIT):
-        init_comms()
-        comm_state = COMM_NORMAL
-    else: #should not end up here
-        comm_state = COMM_INIT
 
-    gc.collect()
+        gc.collect()
+        await asyncio.sleep_ms(4000)
+
 #--------------------------------------------------------------
 
 
 
 #------------------------------------------------------------------------        
-#run main application
-timer = machine.Timer(0)
-timer.init(period=4000, mode=machine.Timer.PERIODIC, callback=loop_4s)
+#add coroutines and run
+app.loop.create_task(UART_receiver())
+app.loop.create_task(UART_transmitter())
+app.loop.create_task(mainloop())
 
-#run web server
 try:
     app.run(host='0.0.0.0', port=80)
 except KeyboardInterrupt as e:
     logging.info(' CTRL+C pressed - terminating...')
-    timer.deinit()
     app.shutdown()
     uasyncio.get_event_loop().run_until_complete(all_shutdown())
 #------------------------------------------------------------------------        
