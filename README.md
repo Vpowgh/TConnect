@@ -50,7 +50,7 @@ JSON formatted command can be sent to address http://yourIP/command
 It is perfectly OK to send multiple commands in one message e.g.{'CMD_STATE':'STATE_ON', 'CMD_SWING':'SWING_ON', 'CMD_FAN':'FANMODE_2'}
 
 Example of sending a command using curl: 
->curl -H "Content-Type: application/json" -X POST http://yourIP/command -d "{\"CMD_STATE\":\"STATE_ON\"}"
+>curl -H "Content-Type: application/json" -X POST http://yourIP/command -d "{\\"CMD_STATE\\":\\"STATE_ON\\"}"
 
 
 # Web interface
