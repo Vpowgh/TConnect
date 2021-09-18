@@ -1,0 +1,30 @@
+128 state, 1 byte:  'STATE_ON':48, 'STATE_OFF':49}
+129
+130
+134
+135 power sel., 1 byte: 50/75/100
+136
+137
+144
+146
+148
+150 comfort sleep, 2 bytes: hours, 0x0f?
+154
+160 fan mode, 1 byte:  'FANMODE_QUIET':49, 'FANMODE_1':50, 'FANMODE_2':51, 'FANMODE_3':52, 'FANMODE_4':53, 'FANMODE_5':54, 'FANMODE_AUTO':65
+163 swing, 1 byte: 'SWING_OFF': 49, 'SWING_ON':65
+176 mode, 1 byte: 'MODE_AUTO':65, 'MODE_COOL':66, 'MODE_HEAT':67, 'MODE_DRY':68, 'MODE_FAN':69
+179 setpoint, 1 byte: temperature in C
+180
+185
+186
+187 room temperature, 1 byte: temperature in C
+190 outdoor temperature, 1 byte: temperature in C
+192
+198
+199
+203
+223
+238
+247
+248
+254
