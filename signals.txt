@@ -6,9 +6,9 @@
 136
 137
 144 timer ON 1 byte: 0x41 on, 0x42 off
-146 timer ON time 2 bytes hours, mins 15/30/45
+146 timer ON time, 2 bytes hours, mins 15/30/45, note this value runs down when time passes
 148 timer OFF 1 byte: 0x41 on, 0x42 off, note comfort sleep sets this too!
-150 comfort sleep, 2 bytes: hours, mins 15/30/45, note in comfort sleep mins are 15=0x0f
+150 timer OFF time, 2 bytes: hours, mins 15/30/45, note comfort sleep sets this too and mins are 15=0x0f in comfort sleep, this value runs down when time passes
 154
 160 fan mode, 1 byte:  'FANMODE_QUIET':49, 'FANMODE_1':50, 'FANMODE_2':51, 'FANMODE_3':52, 'FANMODE_4':53, 'FANMODE_5':54, 'FANMODE_AUTO':65
 163 swing, 1 byte: 'SWING_OFF': 49, 'SWING_ON':65
@@ -18,7 +18,7 @@
 185
 186
 187 room temperature, 1 byte: temperature in C
-190 outdoor temperature, 1 byte: temperature in C
+190 outdoor temperature, 1 byte: temperature in C, note value 127 when not available
 192
 198
 199
