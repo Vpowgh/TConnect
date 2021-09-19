@@ -45,6 +45,9 @@ async def index(request, response):
     '", "fanmode":"' + str(UIfanmode[values[VAL_FANMODE]]) +
     '", "swing":"' + str(UIswing[values[VAL_SWING]]) +
     '", "mode":"' + str(UImode[values[VAL_MODE]]) +
+    '", "smode":"' + str(UImode[values[VAL_SMODE]]) +
+    '", "ontimer":"' + str(UImode[values[VAL_ONTIMER]]) +
+    '", "offtimer":"' + str(UImode[values[VAL_OFFTIMER]]) +
     '", "setpoint":' + str(values[VAL_SETPOINT]) +
     ',  "roomtemp":' + str(convert_temperature(values[VAL_ROOMTEMP])) +
     ',  "outdoortemp":"' + str(convert_temperature(values[VAL_OUTDOORTEMP])) +
@@ -66,24 +69,34 @@ def getrssi():
 COMM_INIT = const(1)
 COMM_NORMAL = const(2)
 
-commands = {'CMD_STATE':128, 'CMD_MODE':176, 'CMD_FAN':160, 'CMD_SWING':163, 'CMD_SETPOINT':179,
+commands = {'CMD_STATE':128, 'CMD_ONTIMER':144, 'CMD_ONTIMERVALUE':146, 'CMD_OFFTIMER':148, 'CMD_OFFTIMERVALUE':150, 'CMD_MODE':176, 'CMD_FAN':160, 'CMD_SWING':163, 'CMD_SETPOINT':179, 'CMD_SMODE':247,
             'MODE_AUTO':65, 'MODE_COOL':66, 'MODE_HEAT':67, 'MODE_DRY':68, 'MODE_FAN':69,
             'FANMODE_QUIET':49, 'FANMODE_1':50, 'FANMODE_2':51, 'FANMODE_3':52, 'FANMODE_4':53, 'FANMODE_5':54, 'FANMODE_AUTO':65,
-            'SWING_OFF': 49, 'SWING_ON':65, 'STATE_ON':48, 'STATE_OFF':49}
+            'SWING_OFF':49, 'SWING_ON':65, 'STATE_ON':48, 'STATE_OFF':49,
+            'SMODE_OFF':0, 'SMODE_HIPOWER':1, 'SMODE_ECOCOMFORTSLEEP':3, 'SMODE_8C':4, 'SMODE_FP1':32, 'SMODE_FP2':48,
+            'ONTIMER_ON':65, 'ONTIMER_OFF':66, 'OFFTIMER_ON':65, 'OFFTIMER_OFF':66}
 UImode =    {0:'-', 65:'AUTO', 66:'COOL', 67:'HEAT', 68:'DRY', 69:'FAN'}
+UISmode =   {0:'OFF', 1:'HIPOWER', 3:'ECO/COMFORT', 4:'8C', 32:'FAN', 48:'FAN'}
 UIfanmode = {0:'-', 49:'QUIET', 50:'1', 51:'2', 52:'3', 53:'4', 54:'5', 65:'AUTO'}
-UIswing =   {0:'-', 49:'OFF', 65:'ON',}
+UIswing =   {0:'-', 49:'OFF', 65:'ON'}
 UIstate =   {0:'-', 48:'ON', 49:'OFF'}
+UIontimer = {0:'-', 65:'ON', 66:'OFF'}
+UIofftimer ={0:'-', 65:'ON', 66:'OFF'}
 
 
-values = {128:0, 160:0, 163:0, 176:0, 179:0, 187:0, 190:0}
+values = {128:0, 144:0, 146:0, 148:0, 150:0, 160:0, 163:0, 176:0, 179:0, 187:0, 190:0, 247:0}
 VAL_STATE = const(128)
+VAL_ONTIMER = const(144)
+VAL_ONTIMERVALUE = const(146)
+VAL_OFFTIMER = const(148)
+VAL_OFFTIMERVALUE = const(150)
 VAL_FANMODE = const(160)
 VAL_SWING = const(163)
 VAL_MODE = const(176)
 VAL_SETPOINT = const(179)
 VAL_ROOMTEMP = const(187)
 VAL_OUTDOORTEMP = const(190)
+VAL_SMODE = const(247)
 
 comm_state = COMM_INIT
 comm_errorcounter = 0
