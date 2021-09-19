@@ -1,19 +1,19 @@
-128 state, 1 byte:  'STATE_ON':48, 'STATE_OFF':49}
+128 state, 1 byte: 'STATE_ON':48, 'STATE_OFF':49
 129
 130
 134
 135 power sel., 1 byte: 50/75/100
 136
 137
-144
-146
-148
-150 comfort sleep, 2 bytes: hours, 0x0f?
+144 timer ON 1 byte: 0x41 on, 0x42 off
+146 timer ON time 2 bytes hours, mins 15/30/45
+148 timer OFF 1 byte: 0x41 on, 0x42 off, note comfort sleep sets this too!
+150 comfort sleep, 2 bytes: hours, mins 15/30/45, note in comfort sleep mins are 15=0x0f
 154
 160 fan mode, 1 byte:  'FANMODE_QUIET':49, 'FANMODE_1':50, 'FANMODE_2':51, 'FANMODE_3':52, 'FANMODE_4':53, 'FANMODE_5':54, 'FANMODE_AUTO':65
 163 swing, 1 byte: 'SWING_OFF': 49, 'SWING_ON':65
 176 mode, 1 byte: 'MODE_AUTO':65, 'MODE_COOL':66, 'MODE_HEAT':67, 'MODE_DRY':68, 'MODE_FAN':69
-179 setpoint, 1 byte: temperature in C
+179 setpoint, 1 byte: temperature in C, note in 8C mode 21=5, 22=6, etc.
 180
 185
 186
@@ -25,6 +25,6 @@
 203
 223
 238
-247
-248
+247 special mode 1 byte: 0x20 fp1, 0x30 fp2, 0x04 8C, 0x03 ECO/comfort sleep, 0x01 hipower, 0x00 off
+248 4 bytes: mode (same as 176), 8C setpoint 5=0x15 12=0x1c 13=0x1d etc.,  fanmode (same as 160), special mode (same as 247)
 254
