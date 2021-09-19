@@ -41,6 +41,7 @@ table.GeneratedTable thead {
 .buttonmode {background-color: #eb6134;font-size: 24px;width:17%;}
 .buttonfan {background-color: #070be6;font-size: 20px;width:11%;}
 .buttonsp {background-color: #278749;font-size: 20px;width:8%;}
+.buttonsmode {background-color: #278739;font-size: 20px;width:9%;}
 
 </style>
 
@@ -128,6 +129,14 @@ table.GeneratedTable thead {
  <button class="button buttonsp" onclick="myFunction(`CMD_SETPOINT`, `24`)">24</button>
  <button class="button buttonsp" onclick="myFunction(`CMD_SETPOINT`, `25`)">25</button>
  <button class="button buttonsp" onclick="myFunction(`CMD_SETPOINT`, `26`)">26</button> 
+</p>
+<p>
+ <button class="button buttonsmode" onclick="myFunction(`CMD_SMODE`, `SMODE_OFF`)">OFF</button>
+ <button class="button buttonsmode" onclick="myFunction(`CMD_SMODE`, `SMODE_HIPOWER`)">HIPOWER</button>
+ <button class="button buttonsmode" onclick="myFunction(`CMD_SMODE`, `SMODE_ECOCOMFORTSLEEP`)">ECO SLEEP</button>
+ <button class="button buttonsmode" onclick="myFunction(`CMD_SMODE`, `SMODE_8C`)">8C</button>
+ <button class="button buttonsmode" onclick="myFunction(`CMD_SMODE`, `SMODE_FP1`)">FIREPLACE 1</button>
+ <button class="button buttonsmode" onclick="myFunction(`CMD_SMODE`, `SMODE_FP2`)">FIREPLACE 2</button>
 </p>
     
 <script>
