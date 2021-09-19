@@ -45,9 +45,9 @@ async def index(request, response):
     '", "fanmode":"' + str(UIfanmode[values[VAL_FANMODE]]) +
     '", "swing":"' + str(UIswing[values[VAL_SWING]]) +
     '", "mode":"' + str(UImode[values[VAL_MODE]]) +
-    '", "smode":"' + str(UImode[values[VAL_SMODE]]) +
-    '", "ontimer":"' + str(UImode[values[VAL_ONTIMER]]) +
-    '", "offtimer":"' + str(UImode[values[VAL_OFFTIMER]]) +
+    '", "smode":"' + str(UIsmode[values[VAL_SMODE]]) +
+    '", "ontimer":"' + str(UIontimer[values[VAL_ONTIMER]]) +
+    '", "offtimer":"' + str(UIofftimer[values[VAL_OFFTIMER]]) +
     '", "setpoint":' + str(values[VAL_SETPOINT]) +
     ',  "roomtemp":' + str(convert_temperature(values[VAL_ROOMTEMP])) +
     ',  "outdoortemp":"' + str(convert_temperature(values[VAL_OUTDOORTEMP])) +
@@ -76,7 +76,7 @@ commands = {'CMD_STATE':128, 'CMD_ONTIMER':144, 'CMD_ONTIMERVALUE':146, 'CMD_OFF
             'SMODE_OFF':0, 'SMODE_HIPOWER':1, 'SMODE_ECOCOMFORTSLEEP':3, 'SMODE_8C':4, 'SMODE_FP1':32, 'SMODE_FP2':48,
             'ONTIMER_ON':65, 'ONTIMER_OFF':66, 'OFFTIMER_ON':65, 'OFFTIMER_OFF':66}
 UImode =    {0:'-', 65:'AUTO', 66:'COOL', 67:'HEAT', 68:'DRY', 69:'FAN'}
-UISmode =   {0:'OFF', 1:'HIPOWER', 3:'ECO/COMFORT', 4:'8C', 32:'FAN', 48:'FAN'}
+UIsmode =   {0:'OFF', 1:'HIPOWER', 3:'ECO/COMFORT', 4:'8C', 32:'FIREPLACE 1', 48:'FIREPLACE 2'}
 UIfanmode = {0:'-', 49:'QUIET', 50:'1', 51:'2', 52:'3', 53:'4', 54:'5', 65:'AUTO'}
 UIswing =   {0:'-', 49:'OFF', 65:'ON'}
 UIstate =   {0:'-', 48:'ON', 49:'OFF'}
